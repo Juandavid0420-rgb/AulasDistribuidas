@@ -26,15 +26,11 @@ Este proyecto implementa un **sistema distribuido en Ubuntu** para la gestión y
 ## 📂 Estructura del Proyecto  
 
 ```plaintext
-📁 proyecto-gestion-aulas  
-│── 📂 src              # Código fuente  
-│   │── servidor.cpp    # Código del servidor central  
-│   │── facultad.cpp    # Código de las facultades  
-│   │── programa.cpp    # Código de los programas académicos  
-│   │── healthcheck.cpp # Monitor de fallos  
-│── 📂 docs             # Documentación del proyecto  
-│── README.md          # Este archivo  
-│── Makefile           # Script para compilar el proyecto  
+📁 sistema-distribuido-aulas/
+├── servidor.py         # Servidor central
+├── facultad.py         # Cliente TCP (Facultad)
+├── programa.py         # Cliente UDP o TCP (Programa académico)
+ 
 
 ```
 ## 🛠️ Instalación
