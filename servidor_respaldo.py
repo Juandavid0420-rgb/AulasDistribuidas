@@ -53,7 +53,7 @@ class Recursos:
                 asignacion["alerta"] = "No hay suficientes aulas para cumplir la solicitud."
 
             # Guardar la asignación en un archivo para persistencia
-            with open("asignaciones.txt", "a") as f:
+            with open("asignaciones_respaldo.txt", "a") as f:
                 f.write(f"Facultad: {facultad}, Programa: {programa}, Asignación: {json.dumps(asignacion)}\n")
 
             return asignacion
@@ -87,7 +87,7 @@ class Metricas:
             else:
                 self.atendidos += 1
             # Guardar métrica en un archivo
-            with open("metricas.txt", "a") as f:
+            with open("metricas_respaldo.txt", "a") as f:
                 f.write(f"Tiempo respuesta: {tiempo}, Atendido: {not asignacion['alerta']}\n")
 
     def registrar_tiempo_total(self, tiempo):
@@ -136,7 +136,7 @@ def manejar_solicitud(socket, recursos, metricas):
         tiempo_inicio = time.time()
         # Decodificar mensaje JSON recibido
         solicitud = json.loads(mensaje.decode('utf-8'))
-        print(f"Servidor recibió solicitud: {solicitud}")
+        print(f"Servidor réplica recibió solicitud: {solicitud}")
 
         # Procesar solicitud y asignar aulas
         asignacion = recursos.asignar_aulas(
@@ -150,14 +150,14 @@ def manejar_solicitud(socket, recursos, metricas):
         # Enviar respuesta a la facultad en formato JSON (multipart: identidad + respuesta)
         respuesta = json.dumps(asignacion).encode('utf-8')
         socket.send_multipart([identity, respuesta])
-        print(f"Servidor respondió: {asignacion}")
+        print(f"Servidor réplica respondió: {asignacion}")
 
-def servidor_central(puerto):
+def servidor_respaldo(puerto):
     """
-    Inicia el servidor central, configura el socket y lanza hilos para manejar solicitudes.
+    Inicia el servidor réplica, configura el socket y lanza hilos para manejar solicitudes.
     
     Args:
-        puerto (int): Puerto donde el servidor escuchará (e.g., 3389).
+        puerto (int): Puerto donde el servidor réplica escuchará (e.g., 3390).
     """
     # Crear contexto ZeroMQ para manejar sockets
     context = zmq.Context()
@@ -176,7 +176,7 @@ def servidor_central(puerto):
         thread.daemon = True  # Hilo demonio para que termine al cerrar el programa
         thread.start()
 
-    print(f"Servidor central iniciado en puerto {puerto}...")
+    print(f"Servidor réplica iniciado en puerto {puerto}...")
     # Mantener el servidor activo
     while True:
         time.sleep(1)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     # Punto de entrada del programa
     import sys
     if len(sys.argv) != 2:
-        print("Uso: python servidor_central.py <puerto>")
+        print("Uso: python servidor_respaldo.py <puerto>")
         sys.exit(1)
-    # Iniciar el servidor central con el puerto proporcionado
-    servidor_central(int(sys.argv[1]))
+    # Iniciar el servidor réplica con el puerto proporcionado
+    servidor_respaldo(int(sys.argv[1]))
