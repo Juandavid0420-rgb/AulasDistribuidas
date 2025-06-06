@@ -62,7 +62,7 @@ make
 ```
 **6️⃣ Ejecutar un programa académico**
 ```plaintext
-./programa  
+./programa_aca  
 ```
 ## 🧪 Pruebas
  
