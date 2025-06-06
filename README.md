@@ -1,5 +1,5 @@
 ````markdown
-# Proyecto Sistemas Distribuidos: Distribución de Aulas con Tolerancia a Fallos
+# 📦 Proyecto Sistemas Distribuidos: Distribución de Aulas con Tolerancia a Fallos
 
 Este repositorio contiene los scripts Python necesarios para desplegar un sistema de distribución de aulas en tres máquinas virtuales (VM) con tolerancia a fallos. Cada componente y su interacción están descritos a continuación. El flujo general es:
 
@@ -10,24 +10,7 @@ Este repositorio contiene los scripts Python necesarios para desplegar un sistem
 
 ---
 
-## Índice
-
-1. [Estructura del Proyecto](#estructura-del-proyecto)  
-2. [Requisitos Previos](#requisitos-previos)  
-3. [Parcheo Mínimo en Servidores (Central y Réplica)](#parcheo-m%C3%ADnimo-en-servidores-central-y-r%C3%A9plica)  
-4. [Configuración de `puerto_activo.txt`](#configuraci%C3%B3n-de-puerto_activotxt)  
-5. [Despliegue por Máquina](#despliegue-por-m%C3%A1quina)  
-   - [VM 1: Servidor Central (10.43.103.179)](#vm-1-servidor-central-1043103179)  
-   - [VM 2: Servidor Réplica (10.43.96.70)](#vm-2-servidor-r%C3%A9plica-10439670)  
-   - [VM 3: Facultades + Health-check (10.43.96.67)](#vm-3-facultades--health-check-10439667)  
-6. [Ejemplo de Flujo Completo](#ejemplo-de-flujo-completo)  
-7. [Simulación de Fallo y Conmutación Manual](#simulaci%C3%B3n-de-fallo-y-conmutaci%C3%B3n-manual)  
-8. [Archivos de Salida / Registros](#archivos-de-salida--registros)  
-9. [Notas Adicionales](#notas-adicionales)  
-
----
-
-## 1. Estructura del Proyecto
+## 📂 1. Estructura del Proyecto
 
 ```text
 proyecto_distribuidos/
@@ -39,47 +22,47 @@ proyecto_distribuidos/
 └── puerto_activo.txt       # Archivo que indica “3389” (Central) o “3390” (Réplica)
 ````
 
-* **servidor\_central.py**:
+* **servidor\_central.py** 🖥️
 
   * Recibe solicitudes JSON de Facultades en un socket ROUTER (puerto 3389).
-  * Cada petición se repica antes al Servidor Réplica (puerto 3390).
-  * Atiende localmente, asigna aulas, registra métricas y envía respuesta back.
+  * Cada petición se replica antes al Servidor Réplica (puerto 3390).
+  * Atiende localmente, asigna aulas, registra métricas y envía respuesta de vuelta.
   * Se ejecuta con un único hilo para evitar “segmentation fault”.
 
-* **servidor\_respaldo.py**:
+* **servidor\_respaldo.py** 🖥️
 
   * Escucha en un socket ROUTER (puerto 3390) las solicitudes replicadas del Central.
   * Procesa cada JSON (asignación de aulas) y envía un ACK (“pong”) al Central.
   * Registra métricas y loguea en pantalla la misma información que el Central.
-  * También usa un solo hilo.
+  * Usa un solo hilo.
 
-* **facultades.py**:
+* **facultades.py** 🏫
 
   * Cada Facultad hace `bind("tcp://*:3391")` para recibir peticiones de programas académicos.
   * Lee `puerto_activo.txt` para saber a qué servidor conectarse (`tcp://IP:<puerto>`).
   * Agrupa todas las peticiones recibidas en <5s y envía un JSON combinado al servidor activo.
   * Registra métricas y asignaciones en archivos locales.
 
-* **programa\_aca.py**:
+* **programa\_aca.py** 🎓
 
   * Se conecta a la Facultad en `tcp://<IP_FACULTAD>:3391`.
   * Cada 10 segundos envía un JSON con `{ programa, semestre, salones, laboratorios }`.
   * Espera `recv_json()` y guarda la respuesta en un archivo local.
 
-* **health\_check.py** (opcional):
+* **health\_check.py** ⚠️ (opcional)
 
   * Hace ping a Central (10.43.103.179:3389) y, si responde, escribe “3389” en `puerto_activo.txt`.
   * Si no responde, hace ping a Réplica (10.43.96.70:3390) y, si responde, escribe “3390”.
   * Luego sale. Sirve solo para inicializar `puerto_activo.txt`.
 
-* **puerto\_activo.txt**:
+* **puerto\_activo.txt** 🔄
 
   * Contiene un único número: `3389` (Central) o `3390` (Réplica).
   * Cada Facultad lo lee cada vez que va a reenviar una solicitud.
 
 ---
 
-## 2. Requisitos Previos
+## 📜 2. Requisitos Previos
 
 En **cada** VM (Central, Réplica y Facultad) debes:
 
@@ -102,7 +85,7 @@ cd /home/estudiante/proyecto_distribuidos
 # Copiar aquí los archivos .py
 chmod 644 *.py
 
-# Habilitar y abrir puertos en ufw (según VM)
+# Habilitar y abrir puertos en ufw (según VM):
 sudo ufw enable
 sudo ufw allow <puerto>  # 3389 en Central, 3390 en Réplica, 3391 en Facultad
 sudo ufw reload
@@ -110,7 +93,7 @@ sudo ufw reload
 
 ---
 
-## 3. Parcheo Mínimo en Servidores (Central y Réplica)
+## 🔧 3. Parcheo Mínimo en Servidores (Central y Réplica)
 
 Antes de ejecutar, hay que modificar ligeramente `servidor_central.py` y `servidor_respaldo.py` para:
 
@@ -121,7 +104,7 @@ A continuación tienes los códigos completos ya parcheados. Reemplaza los conte
 
 ---
 
-### 3.1. `servidor_central.py`
+### 3.1. `servidor_central.py` 🖥️
 
 ```python
 import zmq
@@ -273,7 +256,7 @@ if __name__ == "__main__":
 
 ---
 
-### 3.2. `servidor_respaldo.py`
+### 3.2. `servidor_respaldo.py` 🖥️
 
 ```python
 import zmq
@@ -409,7 +392,7 @@ if __name__ == "__main__":
 
 ---
 
-## 4. Configuración de `puerto_activo.txt`
+## 🔄 4. Configuración de `puerto_activo.txt`
 
 En la **VM 3 (Facultades)** debes crear (o sobrescribir) este archivo para que diga inicialmente `3389` (Servidor Central). Más adelante, cuando simules la caída del Central, cambiarás a `3390` (Servidor Réplica):
 
@@ -428,7 +411,7 @@ chmod 644 puerto_activo.txt
 
 ---
 
-## 5. Despliegue por Máquina
+## 🚀 5. Despliegue por Máquina
 
 A continuación, paso a paso, cómo ejecutar cada componente en su VM correspondiente.
 
@@ -450,7 +433,8 @@ pip3 install pyzmq
 sudo ufw allow 3389
 sudo ufw reload
 
-# 5) Verificar que servidor_central.py esté parcheado (un solo hilo + unpack seguro)
+# 5) Verificar que servidor_central.py esté parcheado 
+#    (un solo hilo + unpack seguro)
 
 # 6) Opcional: sincronizar copia local de puerto_activo.txt
 echo "3389" > puerto_activo.txt
@@ -460,11 +444,13 @@ chmod 644 puerto_activo.txt
 python3 servidor_central.py 3389
 ```
 
-**Salida esperada**:
+**📋 Salida esperada**:
 
 ```
 Servidor Central iniciado en puerto 3389. Esperando solicitudes…
 ```
+
+---
 
 ### VM 2: Servidor Réplica (IP: 10.43.96.70)
 
@@ -484,17 +470,20 @@ pip3 install pyzmq
 sudo ufw allow 3390
 sudo ufw reload
 
-# 5) Verificar que servidor_respaldo.py esté parcheado (un solo hilo + unpack seguro)
+# 5) Verificar que servidor_respaldo.py esté parcheado 
+#    (un solo hilo + unpack seguro)
 
 # 6) Arrancar el Servidor Réplica en el puerto 3390
 python3 servidor_respaldo.py 3390
 ```
 
-**Salida esperada**:
+**📋 Salida esperada**:
 
 ```
 Servidor Réplica iniciado en puerto 3390. Esperando replicaciones…
 ```
+
+---
 
 ### VM 3: Facultades + Health-check (IP: 10.43.96.67)
 
@@ -521,7 +510,7 @@ chmod 644 puerto_activo.txt
 # 6) Editar facultades.py para apuntar a la IP del Central
 nano facultades.py
 # Cambia: ip_servidor = "192.168.1.103"
-# Por:      ip_servidor = "10.43.103.179"
+# Por:    ip_servidor = "10.43.103.179"
 # Guarda y cierra
 
 # 7) Arrancar una o varias Facultades (cada una en segundo plano)
@@ -534,7 +523,7 @@ python3 health_check.py 10.43.103.179 3389 10.43.96.70 3390
 # Debería imprimir que Central responde y grabar "3389" en puerto_activo.txt
 ```
 
-**Salida esperada** (por cada Facultad):
+**📋 Salida esperada** (por cada Facultad):
 
 ```
 Facultad <Nombre> iniciada para el semestre 2025-10...
@@ -542,7 +531,7 @@ Facultad <Nombre> iniciada para el semestre 2025-10...
 
 ---
 
-## 6. Ejemplo de Flujo Completo
+## 🔄 6. Ejemplo de Flujo Completo
 
 1. **Programa Académico envía solicitud** (puede correr en VM 1 o en cualquier otra máquina con acceso a la Facultad):
 
@@ -551,7 +540,7 @@ Facultad <Nombre> iniciada para el semestre 2025-10...
    python3 programa_aca.py "Programa de Prueba" 2025-10 7 3 10.43.96.67 &
    ```
 
-   * **Salida (en su consola)**:
+   * **🖨️ Salida (en su consola)**:
 
      ```
      Programa Programa de Prueba iniciado para el semestre 2025-10...
@@ -575,7 +564,7 @@ Facultad <Nombre> iniciada para el semestre 2025-10...
 
 3. **Servidor Central procesa y replica** (VM 1, puerto 3389):
 
-   * **Salida en consola**:
+   * **🖨️ Salida en consola**:
 
      ```
      Servidor Central - Recibió: {'salones': 7, 'laboratorios': 3, 'facultad': 'Facultad de Ingeniería', 'programa': 'Programa de Prueba'}
@@ -594,13 +583,13 @@ Facultad <Nombre> iniciada para el semestre 2025-10...
 
 4. **Servidor Réplica recibe la replicación y confirma** (VM 2, puerto 3390):
 
-   * **Salida en consola**:
+   * **🖨️ Salida en consola**:
 
      ```
      Servidor Réplica - Recibió replicación: {'salones': 7, 'laboratorios': 3, 'facultad': 'Facultad de Ingeniería', 'programa': 'Programa de Prueba'}
      Servidor Réplica - Procesó asignación: {'facultad': 'Facultad de Ingeniería', 'programa': 'Programa de Prueba', 'salones_asignados': 7, 'laboratorios_asignados': 3, 'estado': 'asignado'}
      ```
-   * Luego envía `["identity", b"pong"]` de vuelta al Central.
+   * Envía `["identity", b"pong"]` de vuelta al Central.
 
 5. **Facultad recibe la respuesta y la guarda** (VM 3):
 
@@ -622,7 +611,7 @@ Facultad <Nombre> iniciada para el semestre 2025-10...
 
 ---
 
-## 7. Simulación de Fallo y Conmutación Manual
+## ⚠️ 7. Simulación de Fallo y Conmutación Manual
 
 Cuando desees simular que el **Servidor Central** falla y la Facultad debe comunicarse con el **Servidor Réplica**, sigue estos pasos:
 
@@ -633,7 +622,7 @@ Cuando desees simular que el **Servidor Central** falla y la Facultad debe comun
    Ctrl + C
    ```
 
-   * Sale el mensaje de interrupción y el Central deja de escuchar en 3389.
+   * El proceso se cierra y el Central deja de escuchar en 3389.
 
 2. **Cambiar manualmente `puerto_activo.txt` a “3390”** (VM 3):
 
@@ -644,7 +633,7 @@ Cuando desees simular que el **Servidor Central** falla y la Facultad debe comun
    chmod 644 puerto_activo.txt
    ```
 
-   * En las Facultades, verás en su siguiente iteración (en <5 s):
+   * En la Facultad, en su siguiente iteración (en <5 s), verás:
 
      ```
      Facultad Facultad de Ingeniería cambió al puerto 3390
@@ -660,26 +649,26 @@ Cuando desees simular que el **Servidor Central** falla y la Facultad debe comun
 
 4. **Nuevas solicitudes irán a la Réplica**
 
-   * Cualquier Programa Académico que siga ejecutándose enviará su JSON a la Facultad; ésta, al leer “3390”, se reconectará:
+   * Cualquier Programa Académico que siga ejecutándose enviará su JSON a la Facultad; ésta, al leer “3390” de `puerto_activo.txt`, hará:
 
      ```python
      socket_servidor.disconnect("tcp://10.43.103.179:3389")
      socket_servidor.connect("tcp://10.43.96.70:3390")
      ```
-   * En VM 2 (Réplica) verás:
+
+     Y verás:
 
      ```
-     Servidor Réplica - Recibió replicación: { ... }
-     Servidor Réplica - Procesó asignación: { ... }
+     Facultad Facultad de Ingeniería envía a 10.43.96.70:3390 → {...}
      ```
-   * La Facultad imprimirá:
+   * En VM 2 (Réplica), en consola:
 
      ```
-     Facultad Facultad de Ingeniería envía a 10.43.96.70:3390 → { ... }
+     Servidor Réplica - Recibió replicación: {...}
+     Servidor Réplica - Procesó asignación: {...}
      ```
-   * Y el Programa Académico recibirá la respuesta normalmente.
 
-5. **Recuperar el Central (opcional)**
+5. **(Opcional) Recuperar el Central**
 
    * Para volver a usar el Central, arranca de nuevo en VM 1:
 
@@ -688,16 +677,16 @@ Cuando desees simular que el **Servidor Central** falla y la Facultad debe comun
      cd /home/estudiante/proyecto_distribuidos
      python3 servidor_central.py 3389
      ```
-   * En VM 3 (Facultades), edita otra vez:
+   * En VM 3 (Facultades), edita:
 
      ```bash
      echo "3389" > puerto_activo.txt
      ```
-   * La Facultad detectará el cambio y se reconectará al Central.
+   * La Facultad reconectará al Central en el próximo ciclo de 5 s.
 
 ---
 
-## 8. Archivos de Salida / Registros
+## 📁 8. Archivos de Salida / Registros
 
 * **Facultades (VM 3)**:
 
@@ -710,14 +699,14 @@ Cuando desees simular que el **Servidor Central** falla y la Facultad debe comun
 
 * **Consolas**:
 
-  * VM 1: Logs de “Servidor Central – Recibió…” y “… Respondió…”.
+  * VM 1: Logs de “Servidor Central – Recibió…” y “... Respondió…”.
   * VM 2: Logs de “Servidor Réplica – Recibió replicación…” y “… Procesó asignación…”.
   * VM 3: Logs de cada Facultad (recepción, reenvío, cambio de puerto).
   * El Programa Académico imprime petición enviada y respuesta recibida.
 
 ---
 
-## 9. Notas Adicionales
+## 📝 9. Notas Adicionales
 
 * **Concurrencia**: ambos servidores usan un solo hilo para atender cada solicitud de forma secuencial. Esto evita errores de ZeroMQ por compartir sockets entre hilos.
 
@@ -737,4 +726,4 @@ Cuando desees simular que el **Servidor Central** falla y la Facultad debe comun
 
 * **Permisos**: asegúrate de que todos los scripts `.py` y `puerto_activo.txt` tengan permisos de lectura/escritura según corresponda.
 
-Con este **README.md** cuentas con toda la información para entender el funcionamiento y desplegar paso a paso el sistema en las tres máquinas, así como para probar el esquema de tolerancia a fallos (Central → Réplica). ¡Éxitos en tu despliegue!
+Con este **README.md** cuentas con toda la información para entender el funcionamiento y desplegar paso a paso el sistema en las tres máquinas, así como para probar el esquema de tolerancia a fallos (Central → Réplica) de forma manual. ¡🚀 Éxitos en tu despliegue!
